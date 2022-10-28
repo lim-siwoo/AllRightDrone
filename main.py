@@ -1,13 +1,25 @@
 import cv2
+import time
 import mediapipe as mp
 import numpy as np
+from djitellopy import Tello
+
+# tello = Tello()
+
+# tello.connect()
+# tello.takeoff()
+
+# tello.move_left(100)
+# tello.rotate_counter_clockwise(90)
+# tello.move_forward(100)
+
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 
 
 # 웹캠, 영상 파일의 경우 이것을 사용하세요.:
-cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(0)
 
 
 def calculate_angle(a, b, c):
@@ -24,15 +36,27 @@ def calculate_angle(a, b, c):
     return angle
 
 if __name__ == "__main__":
+    myDrone = Tello()
+    myDrone.connect()
+    myDrone.takeoff()
+    time.sleep(1)
+    myDrone.streamon()
+    # cv2.namedWindow("drone")
+    # frame_read = myDrone.get_frame_read()
+    # cap = myDrone.get_frame_read
+    time.sleep(2)
     with mp_pose.Pose(
             min_detection_confidence=0.5,
             min_tracking_confidence=0.5) as pose:
-        while cap.isOpened():
-            success, image = cap.read()
-            if not success:
-                print("카메라를 찾을 수 없습니다.")
-                # 동영상을 불러올 경우는 'continue' 대신 'break'를 사용합니다.
+        while True:
+            # time.sleep(1/30)
+            # success, image = myDrone.get_frame_read().frame
+            image = myDrone.get_frame_read()
+
+            if image is None:
+                print("no camera!!")
                 continue
+            image = image.frame
 
             # 필요에 따라 성능 향상을 위해 이미지 작성을 불가능함으로 기본 설정합니다.
             image.flags.writeable = False
@@ -61,11 +85,13 @@ if __name__ == "__main__":
             shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
             elbow = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
             wrist = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x, landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
-            print(calculate_angle(shoulder, elbow, wrist))
+            # print(calculate_angle(shoulder, elbow, wrist))
 
             if cv2.waitKey(5) & 0xFF == 27:
+                myDrone.streamoff()
                 break
-    cap.release()
+    # cap.release()
+    
 
 
 
