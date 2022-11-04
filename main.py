@@ -17,12 +17,15 @@ from djitellopy import Tello
 #set points (center of the frame coordinates in pixels)
 rifX = 960/2
 rifY = 720/2
+rifZ = 200
 
 #PI constant
 Kp_X = 0.1
 Ki_X = 0.0
 Kp_Y = 0.2
 Ki_Y = 0.0
+Kp_Z = 0.4
+Ki_Z = 0.0
 
 #Loop time
 Tc = 0.05
@@ -34,9 +37,15 @@ previous_error_X = 0
 integral_Y = 0
 error_Y = 0
 previous_error_Y = 0
+integral_Z = 0
+error_Z = 0
+previous_error_Z = 0
 
 centroX_pre = rifX
 centroY_pre = rifY
+centroY_pre = rifZ
+
+photoCount = 150
  
 
 mp_drawing = mp.solutions.drawing_utils
@@ -63,12 +72,40 @@ def calculate_angle(a, b, c):
     return angle
 
 def detectPose(landmarks):
-    shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
-    elbow = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
-    wrist = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x, landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
+    leftShoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+    leftElbow = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+    leftWrist = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x, landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
 
-    # print(calculate_angle(shoulder, elbow, wrist))
-    return State.IDLE
+    rightShoulder = [landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.RIGHT_SHOULDER.value].y]
+    rightElbow = [landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].x, landmarks[mp_pose.PoseLandmark.RIGHT_ELBOW.value].y]
+    rightWrist = [landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].x, landmarks[mp_pose.PoseLandmark.RIGHT_WRIST.value].y]
+
+
+    leftAngle = calculate_angle(leftShoulder, leftElbow, leftWrist)
+    rightAngle = calculate_angle(rightShoulder, rightElbow, rightWrist)
+
+    leftShoulderAngle =  calculate_angle(rightShoulder, leftShoulder, leftElbow)
+    rightShoulderAngle =  calculate_angle(leftShoulder, rightShoulder, rightElbow)
+
+    # print(calculate_angle(leftShoulder, leftElbow, leftWrist))
+    # print(calculate_angle(rightShoulder, rightElbow, rightWrist))
+
+    # print(" leftAngle: ", leftAngle)
+    # print("rightAngle: ", rightAngle)
+
+    if rightAngle > 70 and rightAngle < 110 and leftAngle > 150 and leftShoulderAngle > 150:
+        return 25, 0 #왼쪽이동
+    elif leftAngle > 70 and leftAngle < 110 and rightAngle > 150 and rightShoulderAngle > 150:
+        return -25, 0 #오른쪽이동
+    elif rightAngle > 80 and rightAngle < 100 and leftAngle > 80 and leftAngle < 100 and leftShoulderAngle > 150 and rightShoulderAngle > 150:
+        return 0, -1 #착륙
+    elif rightAngle > 150 and leftAngle > 150 and leftShoulderAngle > 150 and rightShoulderAngle > 150:
+        return 0, 1 #사진 촬영
+    else:
+        return 0, 0
+
+
+    
 
 def doCommand(state):
     return 0
@@ -99,6 +136,11 @@ if __name__ == "__main__":
             image = image.frame
             h,w,channels = image.shape
 
+            if photoCount == 149:
+                cv2.imwrite("test.jpg", image)
+            elif photoCount < 150:
+                photoCount += 1
+
             # 필요에 따라 성능 향상을 위해 이미지 작성을 불가능함으로 기본 설정합니다.
             image.flags.writeable = False
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -113,15 +155,14 @@ if __name__ == "__main__":
                 mp_pose.POSE_CONNECTIONS,
                 landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
             # 보기 편하게 이미지를 좌우 반전합니다.
-            cv2.circle(image, (int(rifX), int(rifY)), 1, (0,0,255), 10)
-            cv2.imshow('MediaPipe Pose', cv2.flip(image, 1))
+            cv2.circle(image, (int(rifX), int(rifY-100)), 1, (0,0,255), 10)
             # print(results.pose_landmarks)
             # Extract landmarks
             try:
                 landmarks = results.pose_landmarks.landmark
 
                 nose = [landmarks[mp_pose.PoseLandmark.NOSE.value].x, landmarks[mp_pose.PoseLandmark.NOSE.value].y, landmarks[mp_pose.PoseLandmark.NOSE.value].z]
-                print(nose)
+                # print(nose)
 
                 #draw the center of the person detected
                 if nose[0] < 0:
@@ -135,18 +176,24 @@ if __name__ == "__main__":
                     nose[1] = 1
 
                 centroX = nose[0] * w
-                centroY = nose[1] * h
+                centroY = nose[1] * h + 100
+                centroZ = nose[2] * rifZ*2
 
                 centroX_pre = centroX
                 centroY_pre = centroY
+                centroZ_pre = centroZ
 
 
-                cv2.circle(image, (int(centroX), int(centroY)), 1, (0,0,255), 10)
+                cv2.circle(image, (int(centroX), int(centroY-100)), 1, (0,0,255), 10)
 
                 error_X = -(rifX - centroX)
                 error_Y = rifY - centroY
+                error_Z = rifZ + centroZ
 
-                cv2.line(image, (int(rifX),int(rifY)), (int(centroX),int(centroY)), (0,255,255),5 )
+                cv2.line(image, (int(rifX),int(rifY-100)), (int(centroX),int(centroY-100)), (0,255,255),5 )
+
+                cv2.imshow('MediaPipe Pose', cv2.flip(image, 1))
+
 
                 #PI controller
                 integral_X = integral_X + error_X*Tc # updating integral PID term
@@ -157,8 +204,23 @@ if __name__ == "__main__":
                 uY = Kp_Y*error_Y + Ki_Y*integral_Y
                 previous_error_Y = error_Y
                 
-                myDrone.send_rc_control(0,0,round(uY),round(uX))
-                # p = detectPose(landmarks)
+                integral_Z = integral_Z + error_Z*Tc # updating integral PID term
+                uZ = Kp_Z*error_Z + Ki_Z*integral_Z
+                previous_error_Z = error_Y
+
+                
+                p, action = detectPose(landmarks)
+                myDrone.send_rc_control(p,round(uZ),round(uY),round(uX))
+                if action == -1:
+                    myDrone.streamoff()
+                    myDrone.land()
+                    myDrone.end()
+                    break
+                elif action == 1:
+                    cv2.imwrite("shot.jpg", image)
+                    photoCount = 0
+                    print("PHOTE!!!!!!!!!")
+
                 # print(landmarks)
             except:
                 pass
