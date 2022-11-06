@@ -45,7 +45,7 @@ centroX_pre = rifX
 centroY_pre = rifY
 centroY_pre = rifZ
 
-photoCount = 150
+photoCount = 30
  
 
 mp_drawing = mp.solutions.drawing_utils
@@ -136,9 +136,10 @@ if __name__ == "__main__":
             image = image.frame
             h,w,channels = image.shape
 
-            if photoCount == 149:
+            if photoCount == 29:
                 cv2.imwrite("test.jpg", image)
-            elif photoCount < 150:
+                photoCount +=1
+            elif photoCount < 30:
                 photoCount += 1
 
             # 필요에 따라 성능 향상을 위해 이미지 작성을 불가능함으로 기본 설정합니다.
