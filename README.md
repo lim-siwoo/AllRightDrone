@@ -2,10 +2,10 @@
 Drone Control By Pose Estimation Using Media Pipe
 
 ## Introduction
-*Name* : AllRight Drone
-*Platform* : DJI Telllo
-*Tech Stack* : Python OpenCV, DJITelloPy
-*Purpose* : Purpose Control drone with human pose detection
+*Name* : AllRight Drone   
+*Platform* : DJI Telllo   
+*Tech Stack* : Python OpenCV, DJITelloPy   
+*Purpose* : Purpose Control drone with human pose detection   
 
 ## Project Features
 * Estimate human pose
@@ -36,7 +36,7 @@ Drone Control By Pose Estimation Using Media Pipe
  + Using the human nose as a reference point
  + Change direction while tracking location based on the center of the screen
  + When the person disappearss from the screen, it rotates based on their last position
- + if multiple people come in, kepp track of the first detected person drone tracked
+ + if multiple people come in, kepp track of the first detected person drone tracked    
  <img src="https://user-images.githubusercontent.com/15250755/200211598-f54621f5-0390-4ee1-8d49-1ff7c4a45ee7.png" width="40%" height="30%" title="그림3" alt="follow up"></img>
  ### Follow up Algorithm
   - Error rate calculation
@@ -56,8 +56,8 @@ Drone Control By Pose Estimation Using Media Pipe
   * Implement angle calculation of body joints to estimation pose
   * Judging a pose based on the calculated angle
   * Multiple joint were cross-validated to prevent malfunctions.   
-  <img src="https://user-images.githubusercontent.com/15250755/200213808-8f61183b-549a-4e60-a4c5-2ea31b5f4cc2.png" width="20%" height="15%" title="그림8" alt="Code1"></img>
-  <img src="https://user-images.githubusercontent.com/15250755/200213812-398d5206-d257-4f91-bbe5-9afc22b4350b.png" width="20%" height="15%" title="그림9" alt="Code2"></img>
+  <img src="https://user-images.githubusercontent.com/15250755/200213808-8f61183b-549a-4e60-a4c5-2ea31b5f4cc2.png" width="50%" height="50%" title="그림8" alt="Code1"></img>    
+  <img src="https://user-images.githubusercontent.com/15250755/200213812-398d5206-d257-4f91-bbe5-9afc22b4350b.png" width="50%" height="50%" title="그림9" alt="Code2"></img>
   
 ## YouTube Demo
 
