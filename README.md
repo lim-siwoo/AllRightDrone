@@ -66,7 +66,7 @@ Drone Control By Pose Estimation Using Media Pipe
   [![Demo2](http://img.youtube.com/vi/lAnxkaXryik/0.jpg)](https://www.youtube.com/watch?v=lAnxkaXryik) 
   
 ## Member
-**임시우** | siwoo5530@gmail.com
+**임시우** | siwoo5530@gmail.com  
 **김범기** | chromato99@gmail.com
 
 
